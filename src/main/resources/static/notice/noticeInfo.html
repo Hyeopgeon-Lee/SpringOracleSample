@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <title>게시판 글보기</title>
     <link rel="stylesheet" href="/css/table.css"/>
-    <script type="text/javascript" src="/js/common.js"></script>
     <script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript"
-            src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <script type="text/javascript">
 
         let param = new URLSearchParams(window.location.search);
 
-        let loginUserId = ""; // Controller에서 받은 로그인 아이디
+        let loginId = ""; // Controller에서 받은 로그인 아이디
         let userId = ""; // 공지사항 게시글 작성자 아이디
-        const nSeq = param.get("nSeq"); // night; // 현재 글번호
+        const noticeSeq = param.get("noticeSeq"); // night; // 현재 글번호
 
         // HTML로딩이 완료되고, 실행됨
         $(document).ready(function () {
@@ -38,17 +35,20 @@
         function getNoticeInfo() {
 
             $.ajax({
-                url: "notice/noticeInfo",
+                url: "/api/notice/v1/info",
                 type: "post", // 전송방식은 Post
-                data: {"nSeq": nSeq, "readCntYn": "Y"}, // 글번호, 조회수 증가여부를 파라미터로 전달
+                contentType: "application/json",
+                data: JSON.stringify({"noticeSeq": noticeSeq, "readCntYn": "Y"}), // 글번호, 조회수 증가여부를 파라미터로 전달
                 dataType: "JSON", // 전송 결과는 JSON으로 받기
+
             }).then(function (json) {
-                userId = json.userId; //작성자 아이디
+                userId = json.data.userId; //작성자 아이디
+                loginId = json.data.loginId; //로그인 아이디
                 $("#noticeList").append("<div class=\"divTableRow\">");
-                $("#title").append(json.title);
-                $("#regDt").append(json.regDt);
-                $("#readCnt").append(json.readCnt);
-                $("#contents").append(json.contents);
+                $("#title").append(json.data.title);
+                $("#regDt").append(json.data.regDt);
+                $("#readCnt").append(json.data.readCnt);
+                $("#contents").append(json.data.contents);
 
                 $(":radio[name='noticeYn'][value='" + json.noticeYn + "']").attr('checked', true);
 
@@ -58,26 +58,25 @@
 
         //수정하기
         function doEdit() {
-            location.href = "/notice/noticeEditInfo.html?nSeq=" + nSeq;
+            location.href = "/notice/noticeEditInfo.html?noticeSeq=" + noticeSeq;
 
         }
 
         //삭제하기
         function doDelete() {
-            if (loginUserId === userId) {
+            if (loginId === userId) {
                 if (confirm("작성한 글을 삭제하시겠습니까?")) {
 
                     // Ajax 호출해서 글 삭제하기
                     $.ajax({
-                        url: "http://" + apiServer + "/notice/noticeDelete",
-                        type: "post", // 전송방식은 Post
+                        url: "/api/notice/v1/delete",
+                        type: "delete", // 전송방식은 Post
+                        contentType: "application/json",
                         dataType: "JSON", // 전송 결과는 JSON으로 받기
-                        data: {"nSeq": nSeq}, // form 태그 내 input 등 객체를 자동으로 전송할 형태로 변경하기
-                        success:
-                            function (json) { // /notice/noticeDelete 호출이 성공했다면..
-                                alert(json.msg); // 메시지 띄우기
-                                location.href = "/notice/noticeList.html"; // 공지사항 리스트 이동
-                            }
+                        data: {"noticeSeq": noticeSeq} // form 태그 내 input 등 객체를 자동으로 전송할 형태로 변경하기
+                    }).then(function (json) {
+                        alert(json.msg); // 메시지 띄우기
+                        location.href = "/notice/noticeList.html"; // 공지사항 리스트 이동
                     })
                 }
             } else {

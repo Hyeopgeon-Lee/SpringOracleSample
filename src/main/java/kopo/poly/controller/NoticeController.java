@@ -1,6 +1,5 @@
 package kopo.poly.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import kopo.poly.controller.response.ApiResponse;
 import kopo.poly.dto.MsgDTO;
@@ -73,9 +72,15 @@ public class NoticeController {
      * JSON 구조로 결과 메시지를 전송하기 위해 @ResponseBody 어노테이션 추가함
      */
     @PostMapping(value = "insert")
-    public ResponseEntity<ApiResponse> insert(@RequestParam NoticeDTO pDTO, HttpSession session) {
+    public ResponseEntity<ApiResponse> insert(@RequestBody NoticeDTO pDTO,
+                                              HttpSession session, BindingResult bindingResult) {
 
         log.info(this.getClass().getName() + ".insert Start!");
+
+        if (bindingResult.hasErrors()) { // Spring Validation 맞춰 잘 바인딩되었는지 체크
+            return getErrors(bindingResult);
+
+        }
 
         String msg = ""; // 메시지 내용
 
@@ -84,16 +89,12 @@ public class NoticeController {
         try {
             // 로그인된 사용자 아이디를 가져오기
             // 로그인을 아직 구현하지 않았기에 공지사항 리스트에서 로그인 한 것처럼 Session 값을 저장함
-            String userId = CmmUtil.nvl((String) session.getAttribute("SESSION_USER_ID"), "USER01");
+            String loginId = CmmUtil.nvl((String) session.getAttribute("SESSION_USER_ID"), "USER01");
 
-            /*
-             * ####################################################################################
-             * 반드시, 값을 받았으면, 꼭 로그를 찍어서 값이 제대로 들어오는지 파악해야함 반드시 작성할 것
-             * ####################################################################################
-             */
-            log.info("session user_id : " + userId);
             // 데이터 저장하기 위해 DTO에 저장하기
-            pDTO.setUserId(userId);
+            pDTO.setUserId(loginId);
+            log.info("session loginId : " + loginId);
+            log.info("pDTO : " + pDTO);
 
             /*
              * 게시글 등록하기위한 비즈니스 로직을 호출
@@ -124,35 +125,37 @@ public class NoticeController {
     /**
      * 게시판 상세보기
      */
-    @GetMapping(value = "info")
-    public ResponseEntity noticeInfo(@RequestBody NoticeDTO pDTO, BindingResult bindingResult) throws Exception {
+    @PostMapping(value = "info")
+    public ResponseEntity info(@RequestBody NoticeDTO pDTO, HttpSession session) throws Exception {
 
         log.info(this.getClass().getName() + ".info Start!");
 
-        if (bindingResult.hasErrors()) {
-            return getErrors(bindingResult);
+        log.info("pDTO : " + pDTO.toString());
 
-        }
-
-        log.info("pDTO : " + pDTO);
+        // 로그인된 사용자 아이디를 가져오기
+        // 로그인을 아직 구현하지 않았기에 공지사항 리스트에서 로그인 한 것처럼 Session 값을 저장함
+        String loginId = CmmUtil.nvl((String) session.getAttribute("SESSION_USER_ID"), "USER01");
 
         // 공지사항 상세정보 가져오기
         // Java 8부터 제공되는 Optional 활용하여 NPE(Null Pointer Exception) 처리
         NoticeDTO rDTO = Optional.ofNullable(noticeService.getNoticeInfo(pDTO, true))
                 .orElseGet(NoticeDTO::new);
 
+        rDTO.setLoginId(CmmUtil.nvl(loginId));
+
         log.info(this.getClass().getName() + ".info End!");
 
         // HTTP 상태 코드, 메시지, 결과값을 JSON 구조로 전달
-        return ResponseEntity.ok(ApiResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
+        return ResponseEntity.ok(
+                ApiResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
     }
 
     /**
      * 게시판 글 수정
      */
-    @ResponseBody
     @PostMapping(value = "update")
-    public ResponseEntity noticeUpdate(@RequestBody NoticeDTO pDTO, BindingResult bindingResult, HttpSession session) {
+    public ResponseEntity update(@RequestBody NoticeDTO pDTO,
+                                 BindingResult bindingResult, HttpSession session) {
 
         log.info(this.getClass().getName() + ".update Start!");
 
@@ -191,40 +194,27 @@ public class NoticeController {
         }
 
         // HTTP 상태 코드, 메시지, 결과값을 JSON 구조로 전달
-        return ResponseEntity.ok(ApiResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));
+        return ResponseEntity.ok(
+                ApiResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));
     }
 
     /**
      * 게시판 글 삭제
      */
     @DeleteMapping(value = "delete")
-    public ResponseEntity noticeDelete(HttpServletRequest request, BindingResult bindingResult) {
+    public ResponseEntity delete(@RequestBody NoticeDTO pDTO,
+                                 BindingResult bindingResult) {
 
         log.info(this.getClass().getName() + ".delete Start!");
-
-        String msg = ""; // 메시지 내용
-        MsgDTO dto = null; // 결과 메시지 구조
 
         if (bindingResult.hasErrors()) {
             return getErrors(bindingResult);
         }
 
+        String msg = ""; // 메시지 내용
+        MsgDTO dto = null; // 결과 메시지 구조
+
         try {
-            String nSeq = CmmUtil.nvl(request.getParameter("nSeq")); // 글번호(PK)
-
-            /*
-             * ####################################################################################
-             * 반드시, 값을 받았으면, 꼭 로그를 찍어서 값이 제대로 들어오는지 파악해야함 반드시 작성할 것
-             * ####################################################################################
-             */
-            log.info("nSeq : " + nSeq);
-
-            /*
-             * 값 전달은 반드시 DTO 객체를 이용해서 처리함 전달 받은 값을 DTO 객체에 넣는다.
-             */
-            NoticeDTO pDTO = new NoticeDTO();
-            pDTO.setNoticeSeq(nSeq);
-
             // 게시글 삭제하기 DB
             noticeService.deleteNoticeInfo(pDTO);
 
@@ -244,7 +234,8 @@ public class NoticeController {
 
         }
 
-        return ResponseEntity.ok(ApiResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));
+        return ResponseEntity.ok(
+                ApiResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));
     }
 
     private static ResponseEntity<ApiResponse> getErrors(BindingResult bindingResult) {
