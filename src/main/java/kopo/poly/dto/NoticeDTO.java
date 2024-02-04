@@ -32,9 +32,8 @@ public class NoticeDTO {
     private String chgDt; // 수정일
 
     private String userName; // 등록자명
-
     private String loginId; // 로그인한 사용자ID
-
+    private String readCntYn; // 공지사항 조회수 증가여부(증가 : Y)
 
 }
 

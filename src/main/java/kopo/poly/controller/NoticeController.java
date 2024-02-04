@@ -135,7 +135,9 @@ public class NoticeController {
 
         // 공지사항 상세정보 가져오기
         // Java 8부터 제공되는 Optional 활용하여 NPE(Null Pointer Exception) 처리
-        NoticeDTO rDTO = Optional.ofNullable(noticeService.getNoticeInfo(pDTO, true))
+        NoticeDTO rDTO = Optional.ofNullable(noticeService.getNoticeInfo(pDTO,
+                        CmmUtil.nvl(pDTO.getReadCntYn()).equals("Y")) // 조회수 증가여부(증가 : true)
+                )
                 .orElseGet(NoticeDTO::new);
 
         rDTO.setLoginId(CmmUtil.nvl(loginId));

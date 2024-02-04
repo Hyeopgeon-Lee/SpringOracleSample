@@ -5,21 +5,27 @@
     <title>공지사항 수정하기</title>
     <link rel="stylesheet" href="/css/table.css"/>
     <script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript" src="/js/jquery.serializeObject.min"></script>
+    <script type="text/javascript" src="/js/jquery.serializeObject.min.js"></script>
     <script type="text/javascript">
 
         let param = new URLSearchParams(window.location.search);
-        const nSeq = param.get("nSeq"); // night; // 현재 글번호
+        const noticeSeq = param.get("noticeSeq"); // night; // 현재 글번호
 
         // HTML로딩이 완료되고, 실행됨
         $(document).ready(function () {
 
             getNoticeInfo(); // 공지사항 상세 내역 가져오기
 
-            // 버튼 클릭했을때, 발생되는 이벤트 생성함(onclick 이벤트와 동일함)
-            $("#btnSend").on("click", function () {
+            // 공지사항 수정
+            $("#btnSend").on("click", function () { // 버튼 클릭했을때, 발생되는 이벤트 생성함(onclick 이벤트와 동일함)
                 doSubmit(); // 공지사항 수정하기 실행
             })
+
+            // 목록 이동
+            $("#btnList").on("click", function () { // 버튼 클릭했을때, 발생되는 이벤트 생성함(onclick 이벤트와 동일함)
+                location.href = "/notice/noticeList.html"; // 공지사항 리스트 이동
+            })
+
         })
 
         // 공지사항 내용 수정을 편하게하기 위해 상세 내역 조회하기
@@ -29,12 +35,15 @@
                 url: "/api/notice/v1/info",
                 type: "post", // 전송방식은 Post
                 contentType: "application/json",
-                data: JSON.stringify({"noticeSeq": noticeSeq, "readCntYn": "Y"}), // 글번호, 조회수 증가여부를 파라미터로 전달
+                data: JSON.stringify({"noticeSeq": noticeSeq, "readCntYn": "N"}), // 글번호, 조회수 증가여부를 파라미터로 전달
                 dataType: "JSON", // 전송 결과는 JSON으로 받기
 
             }).then(function (json) {
                 userId = json.data.userId; //작성자 아이디
                 loginId = json.data.loginId; //로그인 아이디
+
+                $("#noticeSeq").val(noticeSeq);
+                $("#userId").val(userId);
                 $("#title").val(json.data.title);
                 $("#regDt").val(json.data.regDt);
                 $("#readCnt").val(json.data.readCnt);
@@ -94,7 +103,8 @@
 <hr/>
 <br/>
 <form name="f" id="f">
-    <input type="hidden" name="nSeq" id="nSeq"/>
+    <input type="hidden1" name="noticeSeq" id="noticeSeq"/>
+    <input type="hidden1" name="userId" id="userId"/>
     <div class="divTable minimalistBlack">
         <div class="divTableBody">
             <div class="divTableRow">
@@ -111,10 +121,6 @@
                 </div>
             </div>
             <div class="divTableRow">
-                <div class="divTableCell">조회수</div>
-                <div class="divTableCell" id="readCnt"></div>
-            </div>
-            <div class="divTableRow">
                 <div class="divTableCell">내용</div>
                 <div class="divTableCell">
                     <textarea name="contents" id="contents" style="width: 95%; height: 400px"></textarea>
@@ -125,6 +131,7 @@
     <div>
         <button id="btnSend" type="button">수정</button>
         <button type="reset">다시 작성</button>
+        <button id="btnList" type="button">목록</button>
     </div>
 </form>
 </body>
