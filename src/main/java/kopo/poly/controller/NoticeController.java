@@ -78,7 +78,7 @@ public class NoticeController {
 
         String msg = ""; // 메시지 내용
 
-        MsgDTO dto = null; // 결과 메시지 구조
+        MsgDTO dto; // 결과 메시지 구조
 
         try {
             // 로그인된 사용자 아이디를 가져오기
@@ -166,7 +166,7 @@ public class NoticeController {
         }
 
         String msg = ""; // 메시지 내용
-        MsgDTO dto = null; // 결과 메시지 구조
+        MsgDTO dto; // 결과 메시지 구조
 
         try {
             String userId = CmmUtil.nvl((String) session.getAttribute("SESSION_USER_ID")); // 아이디
@@ -214,7 +214,7 @@ public class NoticeController {
         }
 
         String msg = ""; // 메시지 내용
-        MsgDTO dto = null; // 결과 메시지 구조
+        MsgDTO dto; // 결과 메시지 구조
 
         try {
             // 게시글 삭제하기 DB
