@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import kopo.poly.controller.response.CommonResponse;
 import kopo.poly.dto.MsgDTO;
 import kopo.poly.dto.NoticeDTO;
@@ -65,7 +66,7 @@ public class NoticeController {
                     @ApiResponse(responseCode = "200", description = "OK"),
                     @ApiResponse(responseCode = "404", description = "Page Not Found!"),})
     @PostMapping(value = "insert")
-    public ResponseEntity<CommonResponse> insert(@RequestBody NoticeDTO pDTO,
+    public ResponseEntity<CommonResponse> insert(@Valid @RequestBody NoticeDTO pDTO,
                                                  HttpSession session, BindingResult bindingResult) {
 
         log.info(this.getClass().getName() + ".insert Start!");
@@ -123,9 +124,14 @@ public class NoticeController {
                     @ApiResponse(responseCode = "200", description = "OK"),
                     @ApiResponse(responseCode = "404", description = "Page Not Found!"),})
     @PostMapping(value = "info")
-    public ResponseEntity info(@RequestBody NoticeDTO pDTO, HttpSession session) throws Exception {
+    public ResponseEntity info(@RequestBody NoticeDTO pDTO, BindingResult bindingResult, HttpSession session) throws Exception {
 
         log.info(this.getClass().getName() + ".info Start!");
+
+        if (bindingResult.hasErrors()) {
+            return getErrors(bindingResult);
+
+        }
 
         log.info("pDTO : " + pDTO.toString());
 
@@ -154,7 +160,7 @@ public class NoticeController {
                     @ApiResponse(responseCode = "200", description = "OK"),
                     @ApiResponse(responseCode = "404", description = "Page Not Found!"),})
     @PostMapping(value = "update")
-    public ResponseEntity update(@RequestBody NoticeDTO pDTO,
+    public ResponseEntity update(@Valid @RequestBody NoticeDTO pDTO,
                                  BindingResult bindingResult, HttpSession session) {
 
         log.info(this.getClass().getName() + ".update Start!");
