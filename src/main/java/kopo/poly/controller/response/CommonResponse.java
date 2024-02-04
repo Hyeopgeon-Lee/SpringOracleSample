@@ -11,7 +11,6 @@ public class CommonResponse<T> {
 
     private HttpStatus httpStatus;
     private String message;
-
     private T data;
 
     @Builder

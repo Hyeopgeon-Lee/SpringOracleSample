@@ -124,14 +124,9 @@ public class NoticeController {
                     @ApiResponse(responseCode = "200", description = "OK"),
                     @ApiResponse(responseCode = "404", description = "Page Not Found!"),})
     @PostMapping(value = "info")
-    public ResponseEntity info(@RequestBody NoticeDTO pDTO, BindingResult bindingResult, HttpSession session) throws Exception {
+    public ResponseEntity info(@RequestBody NoticeDTO pDTO, HttpSession session) throws Exception {
 
         log.info(this.getClass().getName() + ".info Start!");
-
-        if (bindingResult.hasErrors()) {
-            return getErrors(bindingResult);
-
-        }
 
         log.info("pDTO : " + pDTO.toString());
 
