@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @Setter
-public class ApiResponse<T> {
+public class CommonResponse<T> {
 
     private HttpStatus httpStatus;
     private String message;
@@ -15,13 +15,13 @@ public class ApiResponse<T> {
     private T data;
 
     @Builder
-    public ApiResponse(HttpStatus httpStatus, String message, T data) {
+    public CommonResponse(HttpStatus httpStatus, String message, T data) {
         this.httpStatus = httpStatus;
         this.message = message;
         this.data = data;
     }
 
-    public static <T> ApiResponse<T> of(HttpStatus httpStatus, String message, T data) {
-        return new ApiResponse<>(httpStatus, message, data);
+    public static <T> CommonResponse<T> of(HttpStatus httpStatus, String message, T data) {
+        return new CommonResponse<>(httpStatus, message, data);
     }
 }

@@ -1,7 +1,11 @@
 package kopo.poly.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
-import kopo.poly.controller.response.ApiResponse;
+import kopo.poly.controller.response.CommonResponse;
 import kopo.poly.dto.MsgDTO;
 import kopo.poly.dto.NoticeDTO;
 import kopo.poly.service.INoticeService;
@@ -17,15 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-
-/*
- * Controller 선언해야만 Spring 프레임워크에서 Controller인지 인식 가능
- * 자바 서블릿 역할 수행
- *
- * slf4j는 스프링 프레임워크에서 로그 처리하는 인터페이스 기술이며,
- * 로그처리 기술인 log4j와 logback과 인터페이스 역할 수행함
- * 스프링 프레임워크는 기본으로 logback을 채택해서 로그 처리함
- * */
+@Tag(name = "공지사항 서비스", description = "공지사항 구현을 위한 API")
 @Slf4j
 @RequestMapping(value = "/api/notice/v1")
 @RequiredArgsConstructor
@@ -35,13 +31,12 @@ public class NoticeController {
     // @RequiredArgsConstructor 를 통해 메모리에 올라간 서비스 객체를 Controller에서 사용할 수 있게 주입함
     private final INoticeService noticeService;
 
-    /**
-     * 게시판 리스트 보여주기
-     * <p>
-     * GetMapping(value = "list") =>  GET방식을 통해 접속되는 URL이 /api/v1/notice/list 경우 아래 함수를 실행함
-     */
+    @Operation(summary = "공지사항 리스트 API", description = "공지사항 리스트 정보 제공하는 API",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "404", description = "Page Not Found!"),})
     @PostMapping(value = "list")
-    public ResponseEntity<ApiResponse> list(HttpSession session)
+    public ResponseEntity<CommonResponse> list(HttpSession session)
             throws Exception {
 
         // 로그 찍기(추후 찍은 로그를 통해 이 함수에 접근했는지 파악하기 용이하다.)
@@ -61,19 +56,17 @@ public class NoticeController {
         log.info(this.getClass().getName() + ".noticeList End!");
 
         // HTTP 상태 코드, 메시지, 결과값을 JSON 구조로 전달
-        return ResponseEntity.ok(ApiResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rList));
+        return ResponseEntity.ok(CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rList));
 
     }
 
-    /**
-     * 게시판 글 등록
-     * <p>
-     * 게시글 등록은 Ajax로 호출되기 때문에 결과는 JSON 구조로 전달해야만 함
-     * JSON 구조로 결과 메시지를 전송하기 위해 @ResponseBody 어노테이션 추가함
-     */
+    @Operation(summary = "공지사항 등록 API", description = "공지사항 등록 및 등록결과를 제공하는 API",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "404", description = "Page Not Found!"),})
     @PostMapping(value = "insert")
-    public ResponseEntity<ApiResponse> insert(@RequestBody NoticeDTO pDTO,
-                                              HttpSession session, BindingResult bindingResult) {
+    public ResponseEntity<CommonResponse> insert(@RequestBody NoticeDTO pDTO,
+                                                 HttpSession session, BindingResult bindingResult) {
 
         log.info(this.getClass().getName() + ".insert Start!");
 
@@ -119,12 +112,16 @@ public class NoticeController {
             log.info(this.getClass().getName() + ".insert End!");
         }
 
-        return ResponseEntity.ok(ApiResponse.of(HttpStatus.CREATED, HttpStatus.CREATED.series().name(), dto));
+        return ResponseEntity.ok(CommonResponse.of(HttpStatus.CREATED, HttpStatus.CREATED.series().name(), dto));
     }
 
-    /**
-     * 게시판 상세보기
-     */
+    @Operation(summary = "공지사항 상세보기 결과제공 API", description = "공지사항 상세보기 결과 및 조회수 증가 API",
+            parameters = {
+                    @Parameter(name = "noticeSeq", description = "공지사항 글번호"),
+                    @Parameter(name = "readCntYn", description = "조회수 증가여부")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "404", description = "Page Not Found!"),})
     @PostMapping(value = "info")
     public ResponseEntity info(@RequestBody NoticeDTO pDTO, HttpSession session) throws Exception {
 
@@ -147,12 +144,13 @@ public class NoticeController {
 
         // HTTP 상태 코드, 메시지, 결과값을 JSON 구조로 전달
         return ResponseEntity.ok(
-                ApiResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
     }
 
-    /**
-     * 게시판 글 수정
-     */
+    @Operation(summary = "공지사항 수정 API", description = "공지사항 수정 및 수정결과를 제공하는 API",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "404", description = "Page Not Found!"),})
     @PostMapping(value = "update")
     public ResponseEntity update(@RequestBody NoticeDTO pDTO,
                                  BindingResult bindingResult, HttpSession session) {
@@ -195,12 +193,13 @@ public class NoticeController {
 
         // HTTP 상태 코드, 메시지, 결과값을 JSON 구조로 전달
         return ResponseEntity.ok(
-                ApiResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));
     }
 
-    /**
-     * 게시판 글 삭제
-     */
+    @Operation(summary = "공지사항 삭제 API", description = "공지사항 삭제 및 삭제결과를 제공하는 API",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "404", description = "Page Not Found!"),})
     @DeleteMapping(value = "delete")
     public ResponseEntity delete(@RequestBody NoticeDTO pDTO,
                                  BindingResult bindingResult) {
@@ -235,12 +234,12 @@ public class NoticeController {
         }
 
         return ResponseEntity.ok(
-                ApiResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));
     }
 
-    private static ResponseEntity<ApiResponse> getErrors(BindingResult bindingResult) {
+    private static ResponseEntity<CommonResponse> getErrors(BindingResult bindingResult) {
         return ResponseEntity.badRequest()
-                .body(ApiResponse.of(HttpStatus.BAD_REQUEST,
+                .body(CommonResponse.of(HttpStatus.BAD_REQUEST,
                         HttpStatus.BAD_REQUEST.series().name(),
                         bindingResult.getAllErrors()));
     }
